@@ -27,3 +27,6 @@ node_modules/
 # OS trash
 .DS_Store
 Thumbs.db
+
+# MyScript things
+*.cache*
