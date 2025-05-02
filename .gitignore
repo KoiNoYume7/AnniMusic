@@ -8,6 +8,8 @@ build/
 
 # SpotDL and downloads
 downloads/
+*.cache*
+metadata/
 *.mp3
 *.flac
 *.opus
@@ -27,6 +29,3 @@ node_modules/
 # OS trash
 .DS_Store
 Thumbs.db
-
-# MyScript things
-*.cache*
