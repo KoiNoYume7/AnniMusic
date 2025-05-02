@@ -1,17 +1,46 @@
-import os
 import json
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+import subprocess
+from dotenv import load_dotenv
+from pathlib import Path
 
 app = FastAPI()
+
+# Load .env from project root
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
+
+from spotipy.oauth2 import SpotifyOAuth
+
+SPOTIFY_SCOPE = "user-library-read playlist-read-private user-follow-read user-read-playback-state user-modify-playback-state user-read-currently-playing"
+
+spotify_auth = SpotifyOAuth(
+    client_id=os.getenv("SPOTIPY_CLIENT_ID"),
+    client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
+    redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
+    scope=SPOTIFY_SCOPE,
+    cache_path=".cache-annimusic"
+)
+
+@app.get("/spotify/token")
+def get_spotify_token():
+    try:
+        token_info = spotify_auth.get_access_token(as_dict=True)
+        return {"access_token": token_info["access_token"]}
+    except Exception as e:
+        return {"error": str(e)}
+
 DATA_DIR = "data/metadata"
 DOWNLOAD_DIR = "data/downloads"
+USER_DATA_FILE = f"{DATA_DIR}/user_data.json"
+LIKED_TRACKS_FILE = f"{DATA_DIR}/liked_tracks.json"
 
-# Enable CORS for frontend dev
+# CORS, etc. (same as before)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Lock this down later
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -19,27 +48,87 @@ app.add_middleware(
 
 def load_json(path):
     if not os.path.exists(path):
-        return []
+        return {}
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
 @app.get("/songs")
 def get_songs():
-    return load_json(os.path.join(DATA_DIR, "liked_tracks.json"))
+    songs = load_json(LIKED_TRACKS_FILE)
+    user_data = load_json(USER_DATA_FILE)
 
-@app.get("/playlists")
-def get_playlists():
-    return load_json(os.path.join(DATA_DIR, "playlists.json"))
+    # Merge song + user metadata
+    for song in songs:
+        data = user_data.get(song['id'], {})
+        song['rating'] = data.get('rating')
+        song['tags'] = data.get('tags')
+    return songs
+
+@app.post("/metadata/{song_id}")
+async def update_metadata(song_id: str, request: Request):
+    user_data = load_json(USER_DATA_FILE)
+    body = await request.json()
+
+    song_data = user_data.get(song_id, {})
+    song_data.update(body)
+    user_data[song_id] = song_data
+
+    save_json(USER_DATA_FILE, user_data)
+    return {"status": "ok"}
+
+@app.get("/download/{song_id}")
+def download_single(song_id: str):
+    songs = load_json(LIKED_TRACKS_FILE)
+    song = next((s for s in songs if s['id'] == song_id), None)
+    if not song:
+        raise HTTPException(status_code=404, detail="Song not found")
+
+    url = song.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="No URL found")
+
+    subprocess.Popen([
+    "spotdl", "download", url,
+    "--ffmpeg-args=-b:a 192k",
+    "--output", DOWNLOAD_DIR
+])
+    return {"status": "queued"}
+
+@app.get("/download/all")
+def download_all():
+    songs = load_json(LIKED_TRACKS_FILE)
+    for song in songs:
+        url = song.get("url")
+        if not url:
+            continue
+        subprocess.Popen([
+            "spotdl", url,
+            "--output", f"{DOWNLOAD_DIR}/{{artist}} - {{title}}.{{output-ext}}",
+            "--overwrite", "skip"
+        ])
+    return {"status": "download started"}
 
 @app.get("/status")
 def get_status():
-    return load_json(os.path.join(DATA_DIR, "status.json"))
+    status_file = os.path.join(DATA_DIR, "status.json")
+    return load_json(status_file)
 
 @app.get("/stream/{artist}/{title}")
 def stream_song(artist: str, title: str):
-    safe_filename = f"{artist} - {title}".replace("/", "_")
+    from urllib.parse import unquote
+
+    # Decode and normalize input
+    artist = unquote(artist).replace("/", "_").lower()
+    title = unquote(title).replace("/", "_").lower()
+
     for file in os.listdir(DOWNLOAD_DIR):
-        if file.startswith(safe_filename):
+        filename = file.lower().replace("_", " ").replace("-", " ")
+        if artist in filename and title in filename:
             path = os.path.join(DOWNLOAD_DIR, file)
             return FileResponse(path, media_type="audio/mpeg")
+
     raise HTTPException(status_code=404, detail="Song not found")

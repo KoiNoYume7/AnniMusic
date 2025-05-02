@@ -6,10 +6,22 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>AnniMusic 🎵</h1>
-  <div id="song-list">Loading...</div>
-  <audio id="player" controls></audio>
-
-  <script src="script.js"></script>
+  <body>
+    <h1>AnniMusic 🎵</h1>
+    <div>
+      <button onclick="downloadAll()">Download All</button>
+    </div>
+    <div id="song-list">Loading your favs...</div>
+    <div id="custom-player">
+  <div id="track-info">Nothing playing</div>
+  <div id="player-controls">
+    <button id="play-pause">▶</button>
+    <div id="seek">Coming soon</div>
+    <button id="sync-toggle">Spotify: OFF</button>
+  </div>
+</div>
+    <script type="module" src="script.js"></script>
+  </body>
+  
 </body>
 </html>

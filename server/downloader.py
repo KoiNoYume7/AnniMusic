@@ -28,12 +28,16 @@ def song_exists(track):
     return False
 
 def download_song(track):
-    query = f"{track['name']} {track['artist']}"
+    url = track.get("url")
+    if not url:
+        print(f"No URL found for: {track['artist']} - {track['name']}")
+        return "failed"
+    
     try:
         subprocess.run([
-            "spotdl", query,
-            "--output", f"{DOWNLOAD_DIR}/{{artist}} - {{title}}.{{output-ext}}",
-            "--overwrite", "skip"
+            "spotdl", "download", url,
+            "--ffmpeg-args=-b:a 192k",
+            "--output", DOWNLOAD_DIR
         ], check=True)
         return "downloaded"
     except subprocess.CalledProcessError:

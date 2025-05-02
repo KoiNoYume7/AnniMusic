@@ -1,0 +1,33 @@
+AnniMusic
+|   .cache-annimusic
+|   .env
+|   .gitignore
+|   .info
+|   LICENSE
+|   README.md
+|   setup.bat
+|
++---.dist
++---data
+|   +---downloads
+|   |       Linkin Park - Given Up.mp3
+|   |
+|   \---metadata
+|           liked_tracks.json
+|           playlists.json
+|
++---server
+|   |   config.json
+|   |   downloader.py
+|   |   main.py
+|   |   playback_tracker.py
+|   |   spotfiy_sync.py
+|   |   utils.py
+|   |
+|   \---__pycache__
+|           main.cpython-313.pyc
+|
+\---web
+        index.html
+        script.js
+        style.css
