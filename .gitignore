@@ -1,0 +1,29 @@
+# Python stuff
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# SpotDL and downloads
+downloads/
+*.mp3
+*.flac
+*.opus
+*.m4a
+
+# Secrets
+.env
+secrets.json
+
+# Node stuff (if frontend later)
+node_modules/
+
+# VSCode or IDE
+.vscode/
+.idea/
+
+# OS trash
+.DS_Store
+Thumbs.db
