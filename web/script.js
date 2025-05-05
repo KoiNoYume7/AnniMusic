@@ -1,10 +1,15 @@
+// import { msToTime, formatDate } from 'utils.js';
 const API = "http://127.0.0.1:8000";
 const list = document.getElementById("song-list");
 
 let currentTrackId = null;
 let playing = false;
 
+<<<<<<< HEAD
 function msToTime(ms) {
+=======
+export function msToTime(ms) {
+>>>>>>> 4240bdfa6938f9d196756f327ffdac6790c422ac
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000)
     .toString()
@@ -12,7 +17,11 @@ function msToTime(ms) {
   return `${minutes}:${seconds}`;
 }
 
+<<<<<<< HEAD
 function formatDate(isoString) {
+=======
+export function formatDate(isoString) {
+>>>>>>> 4240bdfa6938f9d196756f327ffdac6790c422ac
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now - date;
