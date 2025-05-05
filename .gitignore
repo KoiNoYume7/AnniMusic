@@ -7,9 +7,8 @@ dist/
 build/
 
 # SpotDL and downloads
-downloads/
+data/
 *.cache*
-metadata/
 *.mp3
 *.flac
 *.opus
@@ -25,7 +24,11 @@ node_modules/
 # VSCode or IDE
 .vscode/
 .idea/
+.dist/
 
 # OS trash
 .DS_Store
 Thumbs.db
+
+# custom shit
+*.info

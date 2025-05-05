@@ -41,7 +41,10 @@ def fetch_liked_tracks():
                 'artist': track['artists'][0]['name'],
                 'album': track['album']['name'],
                 'duration_ms': track['duration_ms'],
-                'uri': track['uri']
+                'uri': track['uri'],
+                'url': track['external_urls']['spotify'],
+                'image': track['album']['images'][0]['url'] if track['album']['images'] else None,
+                'added_at': item['added_at']
             })
         if results['next']:
             results = sp.next(results)
