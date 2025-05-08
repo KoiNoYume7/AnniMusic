@@ -1,4 +1,7 @@
 # 🎵 AnniMusic
+>Work in progress...
+
+<img src="web/pictures/^AnniMusic.png" alt="AnniMusic Logo" width="100" style="border: 2px solid #444; border-radius: 10px; padding: 4px;">
 
 Welcome to **AnniMusic** – a self-hosted, Spotify-synced music vault made for true music lovers who are sick of losing their favorite tracks to licensing black holes. AnniMusic is your own private music webapp, built to sync your Spotify favorites and download them locally — strictly for personal use only.
 
@@ -41,20 +44,53 @@ AnniMusic is for **personal use only**. You are responsible for ensuring your us
 - **Server**: Localhost or LAN-accessible with optional VPN
 
 ---
+### Project structure
+```
+AnniMusic
+│   .env
+│   .env.ncrypt
+│   .gitignore
+│   LICENSE
+│   projectstruct.txt
+│   README.md
+│   requirements.txt
+│   setup.bat
+│   
+├───server
+│       downloader.py
+│       main.py
+│       playback_tracker.py
+│       spotfiy_sync.py
+│       utils.py
+│
+└───web
+    │   index.html
+    │   player.js
+    │   script.js
+    │   spotify.js
+    │   state.js
+    │   style.css
+    │   ui.js
+    │   utils.js
+    │
+    └───pictures
+            ^AnniMusic.png
+```
+
 
 ## 🔧 Features To-Do
 
 - [x] Spotify Sync Script (likes, playlists, artists)
-- [ ] Playback Tracking System
-- [ ] spotDL Integration with Sync Logic
-- [ ] Web Player UI
+- [-] Playback Tracking System
+- [x] spotDL Integration with Sync Logic
+- [x] Web Player UI
 - [ ] Local Download to Mobile Support
-- [ ] Metadata Reader & Tagging System
+- [-] Metadata Reader & Tagging System
 - [ ] Custom Spotify Wrapped Clone
 - [ ] Server Config/Settings UI
 - [ ] Optional Auth (TBD)
 - [ ] Full Customization Panel
-- [ ] Documentation (YEAHHH)
+- [x] Documentation (YEAHHH)
 
 ---
 
@@ -63,11 +99,17 @@ AnniMusic is for **personal use only**. You are responsible for ensuring your us
 1. Clone this repo
 2. Set up your Spotify API keys
 3. Run the server on your machine
-4. Visit `localhost:xxxx` to start jamming
-5. Profit (emotionally, not financially)
+4. Sync your liked songs via `server/spotify_sync.py`
+5. Visit `http://127.0.0.1:8000` to start jamming
+6. Profit *(emotionally, not financially)*
 
 ---
 
-Made with caffeine, passion, and a sprinkle of frustration at Spotify.
-**Name origin: "AnniMusic" – because Anni deserves good music too.**
+### 🔥 Credits
+>.env file is now included for convenience while developing, but encrypted thanks to [@SpizzyCoder](https://github.com/SpizzyCoder) with his [ncrypt](https://github.com/SpizzyCoder/ncrypt) Project!
 
+---
+
+### Final Words
+Made with caffeine, passion, and a sprinkle of frustration at Spotify.
+**Name origin: "AnniMusic" – because Anni deserves good music too. ^^**

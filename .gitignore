@@ -6,6 +6,7 @@ __pycache__/
 dist/
 build/
 venv/
+requirements.txt
 
 # SpotDL and downloads
 data/
