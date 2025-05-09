@@ -1,7 +1,7 @@
 # 🎵 AnniMusic
 >Work in progress...
 
-<img src="web/pictures/^AnniMusic.png" alt="AnniMusic Logo" width="100" style="border: 2px solid #444; border-radius: 10px; padding: 4px;">
+<img src="web/assets/^AnniMusic.png" alt="AnniMusic Logo" width="1000" style="border: 2px solid #444; border-radius: 10px; padding: 4px;">
 
 Welcome to **AnniMusic** – a self-hosted, Spotify-synced music vault made for true music lovers who are sick of losing their favorite tracks to licensing black holes. AnniMusic is your own private music webapp, built to sync your Spotify favorites and download them locally — strictly for personal use only.
 
@@ -9,15 +9,17 @@ Welcome to **AnniMusic** – a self-hosted, Spotify-synced music vault made for 
 
 ## 💡 What It Does
 
-- 🔁 **Real-Time Sync**: Continuously syncs liked songs, playlists, artists, and playback status using the Spotify API.
-- 🎶 **Local Downloads**: Downloads songs using `spotDL` and stores them locally on your private server.
-- 📦 **Metadata-Rich Library**: Keeps track of full song metadata (artist, album art, duration, etc.) for rich playback experience.
-- 🕹️ **Playback Control**: Handles play, pause, skip, shuffle, loop, etc. – either through Spotify or your own interface.
-- 📉 **Desync Prevention**: Tracks song progress to avoid playback misalignment between Spotify and your local player.
-- 📁 **Offline Listening**: Download songs from your private server to your phone for offline access.
-- 🏷️ **Custom Tags & Sorting**: Add your own tags to organize songs by mood, vibe, or absolute banger level.
-- 📊 **Custom Wrapped**: Create your own "Spotify Wrapped" with way more detail and full control.
-- 🛡️ **Private & Secure**: No user data shared. Hosted by you, for you.
+* 🔁 **Real-Time Sync**: Syncs your liked songs and playlists using the Spotify API.
+* 🖼️ **Playlist Grid UI**: Displays your liked songs and playlists in a slick visual grid — including cover images!
+* 🔙 **Back Button Support**: Full browser navigation between pages (playlist view ↔ playlist grid).
+* 🎶 **Local Downloads**: Downloads songs using `spotDL` and stores them locally on your private server.
+* 📆 **Metadata-Rich Library**: Keeps track of full song metadata (artist, album art, duration, etc.) for rich playback experience.
+* 🔹 **Playback Control**: Handles play, pause, skip, etc. – either through Spotify or your own interface.
+* 📉 **Desync Prevention** *(coming soon)*: Will track song progress to avoid playback misalignment between Spotify and your local player.
+* 📁 **Offline Listening**: Download songs from your private server to your phone for offline access.
+* 🌿 **Custom Tags & Sorting**: Add your own tags to organize songs by mood, vibe, or absolute banger level.
+* 📊 **Custom Wrapped**: Create your own "Spotify Wrapped" with way more detail and full control.
+* 🔒 **Private & Secure**: No user data shared. Hosted by you, for you.
 
 ---
 
@@ -80,17 +82,22 @@ AnniMusic
 
 ## 🔧 Features To-Do
 
-- [x] Spotify Sync Script (likes, playlists, artists)
-- [-] Playback Tracking System
-- [x] spotDL Integration with Sync Logic
-- [x] Web Player UI
-- [ ] Local Download to Mobile Support
-- [-] Metadata Reader & Tagging System
-- [ ] Custom Spotify Wrapped Clone
-- [ ] Server Config/Settings UI
-- [ ] Optional Auth (TBD)
-- [ ] Full Customization Panel
-- [x] Documentation (YEAHHH)
+* [x] Spotify Sync Script (likes, playlists, artists)
+* \[-] Playback Tracking System
+* [x] spotDL Integration with Sync Logic
+* [x] Web Player UI
+* [x] Playlist Grid & Cover Images
+* [x] Browser Navigation Support
+* [ ] Local Download to Mobile Support
+* \[-] Metadata Reader & Tagging System
+* [ ] Custom Spotify Wrapped Clone
+* [ ] Server Config/Settings UI
+* [ ] Optional Auth (TBD)
+* [ ] Full Customization Panel
+* [x] Documentation (YEAHHH)
+
+
+---
 
 ---
 

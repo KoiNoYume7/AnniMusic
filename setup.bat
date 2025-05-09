@@ -1,24 +1,19 @@
 @echo off
-echo This script sets up a Python virtual environment and installs the required packages for the Spotify API project.
+echo Setting up the AnniMusic project...
 
-cd AnniMusic
+REM Navigate to the project directory
+cd /d "%~dp0"
 
-echo creating a virtual environment if it doesn't already exist
+REM Create virtual environment if it doesn't exist
 if not exist venv (
     python -m venv venv
 )
 
-echo activating the virtual environment
+REM Activate virtual environment
 call venv\Scripts\activate.bat
 
-echo installing the required Python packages...
-pip install pipreqs
-pipreqs . --force
+REM Install dependencies
 pip install -r requirements.txt
-pip install fastapi uvicorn python-dotenv requests spotipy
 
-echo Setup complete. Virtual environment is ready, and required packages are installed.
-
+echo Setup complete!
 PAUSE
-
-uvicorn server:app --reload

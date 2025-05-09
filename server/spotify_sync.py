@@ -28,30 +28,31 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 # === MAIN FUNCTIONS ===
 
-def fetch_liked_tracks():
-    print("Fetching liked tracks...")
-    all_tracks = []
-    results = sp.current_user_saved_tracks(limit=50)
-    while results:
-        for item in results['items']:
-            track = item['track']
-            all_tracks.append({
-                'id': track['id'],
-                'name': track['name'],
-                'artist': track['artists'][0]['name'],
-                'album': track['album']['name'],
-                'duration_ms': track['duration_ms'],
-                'uri': track['uri'],
-                'url': track['external_urls']['spotify'],
-                'image': track['album']['images'][0]['url'] if track['album']['images'] else None,
-                'added_at': item['added_at']
-            })
-        if results['next']:
-            results = sp.next(results)
-        else:
-            break
-    print(f"{len(all_tracks)} tracks fetched.")
-    return all_tracks
+def fetch_liked_tracks() -> list[dict]:
+    try:
+        print("Fetching liked tracks...")
+        all_tracks = []
+        results = sp.current_user_saved_tracks(limit=50)
+        while results:
+            for item in results['items']:
+                track = item['track']
+                all_tracks.append({
+                    'id': track['id'],
+                    'name': track['name'],
+                    'artist': track['artists'][0]['name'],
+                    'album': track['album']['name'],
+                    'duration_ms': track['duration_ms'],
+                    'uri': track['uri'],
+                    'url': track['external_urls']['spotify'],
+                    'image': track['album']['images'][0]['url'] if track['album']['images'] else None,
+                    'added_at': item['added_at']
+                })
+            results = sp.next(results) if results['next'] else None
+        print(f"{len(all_tracks)} tracks fetched.")
+        return all_tracks
+    except Exception as e:
+        print(f"Error fetching liked tracks: {e}")
+        return []
 
 def fetch_playlists():
     print("Fetching playlists...")
@@ -62,8 +63,10 @@ def fetch_playlists():
             'name': item['name'],
             'id': item['id'],
             'uri': item['uri'],
-            'track_count': item['tracks']['total']
+            'track_count': item['tracks']['total'],
+            'image': item['images'][0]['url'] if item['images'] else None
         })
+
     print(f"{len(playlists)} playlists fetched.")
     return playlists
 

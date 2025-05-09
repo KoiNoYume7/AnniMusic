@@ -36,6 +36,8 @@ DATA_DIR = "data/metadata"
 DOWNLOAD_DIR = "data/downloads"
 USER_DATA_FILE = f"{DATA_DIR}/user_data.json"
 LIKED_TRACKS_FILE = f"{DATA_DIR}/liked_tracks.json"
+PLAYLISTS_FILE = f"{DATA_DIR}/playlists.json"
+
 
 # CORS, etc. (same as before)
 app.add_middleware(
@@ -120,6 +122,46 @@ def get_status():
 @app.get("/stream/{artist}/{title}")
 def stream_song(artist: str, title: str):
     from urllib.parse import unquote
+
+@app.get("/playlists")
+def get_playlists():
+    return load_json(PLAYLISTS_FILE)
+
+
+@app.get("/playlist/{playlist_id}")
+def get_playlist_tracks(playlist_id: str):
+    from spotipy import Spotify
+    from spotipy.oauth2 import SpotifyOAuth
+
+    sp = Spotify(auth_manager=SpotifyOAuth(
+        scope="playlist-read-private",
+        client_id=os.getenv("SPOTIPY_CLIENT_ID"),
+        client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
+        redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
+        cache_path=".cache-annimusic"
+    ))
+
+    results = sp.playlist_tracks(playlist_id, limit=100)
+    tracks = []
+
+    for item in results['items']:
+        track = item['track']
+        if track is None:
+            continue
+        tracks.append({
+            'id': track['id'],
+            'name': track['name'],
+            'artist': track['artists'][0]['name'],
+            'album': track['album']['name'],
+            'duration_ms': track['duration_ms'],
+            'uri': track['uri'],
+            'url': track['external_urls']['spotify'],
+            'image': track['album']['images'][0]['url'] if track['album']['images'] else None,
+            'added_at': item.get('added_at', '')
+        })
+
+    return tracks
+
 
     # Decode and normalize input
     artist = unquote(artist).replace("/", "_").lower()
