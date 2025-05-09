@@ -1,13 +1,17 @@
 import json
 import os
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 from dotenv import load_dotenv
 from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+import threading
+import time
+from queue import Queue
 
 app = FastAPI()
+download_queue = Queue()
 
 # Load .env from project root
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
@@ -93,35 +97,95 @@ def download_single(song_id: str):
     if not url:
         raise HTTPException(status_code=400, detail="No URL found")
 
-    subprocess.Popen([
-    "spotdl", "download", url,
-    "--ffmpeg-args=-b:a 192k",
-    "--output", DOWNLOAD_DIR
-])
+    # Mark as queued
+    status_file = os.path.join(DATA_DIR, "status.json")
+    status = load_json(status_file)
+    status[song_id] = "queued"
+    save_json(status_file, status)
+
+    # Add to queue
+    download_queue.put(song)
+
     return {"status": "queued"}
+
+
+@app.get("/downloads")
+def list_downloaded_ids():
+    songs = load_json(LIKED_TRACKS_FILE)
+    file_names = os.listdir(DOWNLOAD_DIR)
+    downloaded_ids = []
+
+    for song in songs:
+        artist = song["artist"].replace("/", "_")
+        title = song["name"].replace("/", "_")
+        expected_start = f"{artist} - {title}".lower()
+
+        for file in file_names:
+            if file.lower().startswith(expected_start):
+                downloaded_ids.append(song["id"])
+                break
+
+    return downloaded_ids
+
+@app.post("/status/validate")
+def validate_download_status():
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+    songs = load_json(LIKED_TRACKS_FILE)
+    status = load_json(os.path.join(DATA_DIR, "status.json"))
+    file_names = os.listdir(DOWNLOAD_DIR)
+
+    updated = False
+
+    for song in songs:
+        song_id = song["id"]
+        artist = song["artist"].replace("/", "_")
+        title = song["name"].replace("/", "_")
+        expected_prefix = f"{artist} - {title}".lower()
+
+        found = any(file.lower().startswith(expected_prefix) for file in file_names)
+
+        correct_status = "downloaded" if found else "not-downloaded"
+        if status.get(song_id) not in ["queued", "downloading", "failed"] and status.get(song_id) != correct_status:
+            status[song_id] = correct_status
+            updated = True
+
+    if updated:
+        save_json(os.path.join(DATA_DIR, "status.json"), status)
+
+    return {"status": "validated", "changes_applied": updated}
+
+
+
 
 @app.get("/download/all")
 def download_all():
     songs = load_json(LIKED_TRACKS_FILE)
+    status_file = os.path.join(DATA_DIR, "status.json")
+    status = load_json(status_file)
+
     for song in songs:
+        song_id = song["id"]
         url = song.get("url")
-        if not url:
+        if not url or status.get(song_id) in ["downloaded", "queued", "downloading"]:
             continue
-        subprocess.Popen([
-            "spotdl", url,
-            "--output", f"{DOWNLOAD_DIR}/{{artist}} - {{title}}.{{output-ext}}",
-            "--overwrite", "skip"
-        ])
-    return {"status": "download started"}
+
+        status[song_id] = "queued"
+        download_queue.put(song)
+
+    save_json(status_file, status)
+    return {"status": "all queued"}
+
+@app.get("/queue")
+def get_queue_length():
+    return {"queued": download_queue.qsize()}
+
+
 
 @app.get("/status")
 def get_status():
     status_file = os.path.join(DATA_DIR, "status.json")
     return load_json(status_file)
-
-@app.get("/stream/{artist}/{title}")
-def stream_song(artist: str, title: str):
-    from urllib.parse import unquote
 
 @app.get("/playlists")
 def get_playlists():
@@ -162,15 +226,47 @@ def get_playlist_tracks(playlist_id: str):
 
     return tracks
 
+def background_downloader():
+    while True:
+        song = download_queue.get()
+        if song is None:
+            break  # allows clean shutdown
 
-    # Decode and normalize input
-    artist = unquote(artist).replace("/", "_").lower()
-    title = unquote(title).replace("/", "_").lower()
+        song_id = song['id']
+        url = song['url']
 
-    for file in os.listdir(DOWNLOAD_DIR):
-        filename = file.lower().replace("_", " ").replace("-", " ")
-        if artist in filename and title in filename:
-            path = os.path.join(DOWNLOAD_DIR, file)
-            return FileResponse(path, media_type="audio/mpeg")
+        status_file = os.path.join(DATA_DIR, "status.json")
+        status = load_json(status_file)
+        status[song_id] = "downloading"
+        save_json(status_file, status)
 
-    raise HTTPException(status_code=404, detail="Song not found")
+        print(f"Downloading: {song['artist']} - {song['name']}")
+
+        try:
+            result = subprocess.run([
+                "spotdl", "download", url,
+                "--ffmpeg-args=-b:a 192k",
+                "--output", DOWNLOAD_DIR
+            ], capture_output=True, text=True)
+
+            # Check if any matching file was written
+            song_filename_prefix = f"{song['artist']} - {song['name']}".replace("/", "_").lower()
+            downloaded = False
+
+            for file in os.listdir(DOWNLOAD_DIR):
+                if file.lower().startswith(song_filename_prefix):
+                    downloaded = True
+                    break
+
+            status[song_id] = "downloaded" if downloaded else "failed"
+
+        except subprocess.CalledProcessError:
+            status[song_id] = "failed"
+
+        save_json(status_file, status)
+        download_queue.task_done()
+
+
+
+threading.Thread(target=background_downloader, daemon=True).start()
+app.mount("/", StaticFiles(directory="web", html=True), name="web")

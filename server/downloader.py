@@ -50,20 +50,26 @@ def main():
 
     for track in tracks:
         track_id = track["id"]
-        if track_id in status and status[track_id] == "downloaded":
+        if status.get(track_id) == "downloaded":
             print(f"Already downloaded: {track['artist']} - {track['name']}")
             continue
 
         if song_exists(track):
             print(f"File exists locally (marking as downloaded): {track['artist']} - {track['name']}")
             status[track_id] = "downloaded"
+            save_status(status)  # ← missing!
             continue
+
+
+        print(f"Downloading: {track['artist']} - {track['name']}")
+        status[track_id] = "downloading"
+        save_status(status)
 
         result = download_song(track)
         status[track_id] = result
-        print(f"{result.title()}: {track['artist']} - {track['name']}")
-
         save_status(status)
+
+        print(f"{result.upper()}: {track['artist']} - {track['name']}")
 
 if __name__ == "__main__":
     main()

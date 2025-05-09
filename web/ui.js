@@ -23,24 +23,55 @@ function createHeaderRow() {
     <div class="col album">Album</div>
     <div class="col date">Added</div>
     <div class="col duration">Length</div>
-    <div class="col status">Status</div>
+    <div class="col status">
+      <div>Status</div>
+      <button class="download-all-btn" title="Download all liked songs">Download All</button>
+    </div>
   `;
+
+  // Hook up download button
+  header.querySelector(".download-all-btn").onclick = () => {
+    fetch(`${API}/download/all`).then(() => {
+      alert("All liked songs queued for download.");
+    });
+  };
+
   return header;
 }
+
 
 // Create a row for an individual song
 function createSongRow(song, index, status) {
   const row = document.createElement("div");
   row.className = "song-row";
+  row.dataset.songId = song.id;
+  row.dataset.hasUrl = song.url ? "true" : "false";
 
   const num = document.createElement("div");
   num.className = "col index";
   num.textContent = index + 1;
 
+  const coverWrapper = document.createElement("div");
+  coverWrapper.className = "col cover-wrapper";
+
   const cover = document.createElement("img");
-  cover.className = "col cover img";
+  cover.className = "cover-img";
   cover.src = song.image || "";
   cover.alt = "Cover";
+
+  const playBtn = document.createElement("button");
+  playBtn.className = "hover-play-btn";
+  playBtn.textContent = "▶";
+  playBtn.onclick = () => {
+    const artistSlug = encodeURIComponent(song.artist);
+    const titleSlug = encodeURIComponent(song.name);
+    const streamUrl = `${API}/stream/${artistSlug}/${titleSlug}`;
+    playTrack(song.name, song.artist, streamUrl, song.id);
+  };
+
+  coverWrapper.appendChild(cover);
+  coverWrapper.appendChild(playBtn);
+
 
   const info = document.createElement("div");
   info.className = "col info";
@@ -66,9 +97,43 @@ function createSongRow(song, index, status) {
 
   const statusBox = document.createElement("div");
   statusBox.className = "col status";
-  statusBox.textContent = status[song.id] || "pending";
+  let rawStatus = status[song.id];
 
-  row.append(num, cover, info, album, added, duration, statusBox);
+  if (rawStatus === "not-downloaded" && song.url) {
+    rawStatus = "stream-only";
+  } else if (!rawStatus && song.url) {
+    rawStatus = "stream-only";
+  } else if (!rawStatus) {
+    rawStatus = "not-available";
+  }
+
+
+  if (["stream-only", "not-available", "pending", "failed"].includes(rawStatus)) {
+    statusBox.title = "Click to download";
+    statusBox.onclick = () => {
+      fetch(`${API}/download/${song.id}`).then(() => {
+        statusBox.textContent = "queued";
+        statusBox.classList.remove(`status-${rawStatus.toLowerCase()}`);
+        statusBox.classList.add("status-queued");
+      });
+    };
+  } else {
+    statusBox.title = "Already downloaded";
+    statusBox.style.cursor = "default";
+  }
+
+
+  if (statusBox.textContent !== rawStatus) {
+    statusBox.textContent = rawStatus;
+  }
+  statusBox.className = "col status";
+  statusBox.classList.add(`status-${rawStatus.toLowerCase()}`);
+
+
+
+
+
+  row.append(num, coverWrapper, info, album, added, duration, statusBox);
   return row;
 }
 
@@ -115,6 +180,11 @@ export async function loadSongs() {
     console.error("Error loading songs:", error);
     list.innerHTML = "<p>Failed to load songs. Please try again later.</p>";
   }
+
+  if (typeof window.startPolling === "function") {
+    window.startPolling();
+  }
+
 }
 
 // Load playlists
@@ -204,6 +274,10 @@ function loadSongsList(songs, title, status = {}){
   });
 }
 
+if (typeof window.startSmartPolling === "function") {
+  window.startSmartPolling();
+}
+
 // === Event Listeners ===
 syncBtn.onclick = () => {
   toggleSpotifySync();
@@ -214,3 +288,59 @@ playPauseBtn.onclick = () => {
   togglePlayPause();
   playPauseBtn.textContent = isPlaying() ? "⏸" : "▶";
 };
+
+let pollingTimer;
+
+export function startPolling() {
+  console.log("✅ startPolling() called");
+
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollingTimer = setInterval(async () => {
+    console.log("📡 Polling for status...");
+
+    try {
+      const [statusRes, downloadRes] = await Promise.all([
+        fetch("http://127.0.0.1:8000/status"),
+        fetch("http://127.0.0.1:8000/downloads")
+      ]);
+
+      const status = await statusRes.json();
+      const downloadedIds = await downloadRes.json();
+
+      // Update UI
+      document.querySelectorAll(".song-row").forEach(row => {
+        const songId = row.dataset.songId;
+        const box = row.querySelector(".status");
+        if (!songId || !box) return;
+
+        let rawStatus = status[songId];
+
+        if (downloadedIds.includes(songId)) {
+          rawStatus = "downloaded";
+        } else if (rawStatus === "not-downloaded" && row.dataset.hasUrl === "true") {
+          rawStatus = "stream-only";
+        } else if (!rawStatus && row.dataset.hasUrl === "true") {
+          rawStatus = "stream-only";
+        } else if (!rawStatus) {
+          rawStatus = "not-available";
+        }
+
+        if (box.textContent !== rawStatus) {
+          box.textContent = rawStatus;
+        }
+
+        box.className = "col status";
+        box.classList.add(`status-${rawStatus.toLowerCase()}`);
+      });
+
+      await fetch("http://127.0.0.1:8000/status/validate", {
+        method: "POST"
+      });
+
+    } catch (err) {
+      console.error("❌ Polling error:", err);
+    }
+
+  }, 1000);
+}
+
