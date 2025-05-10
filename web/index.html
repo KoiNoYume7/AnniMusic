@@ -1,24 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AnniMusic</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>AnniMusic 🎵</h1>
+  <div id="app">
+    <header class="logo-bar">
+      <div class="logo-frame">
+        <img src="assets/^AnniMusic.png" alt="AnniMusic Logo" class="logo" />
+      </div>
+      <div class="title-text">AnniMusic</div>
+    </header>
 
-  <div id="song-list">Loading your favs...</div>
 
-  <div id="custom-player">
-    <div id="track-info">Nothing playing</div>
-    <div id="player-controls">
-      <button id="play-pause">▶</button>
-      <div id="seek">Coming soon</div>
-      <button id="sync-toggle">Spotify: OFF</button>
-    </div>
+    <main id="song-list" class="fade-in">
+      <!-- dynamic content here -->
+    </main>
+
+    <footer id="custom-player">
+      <div id="player-controls">
+        <button id="play-pause">▶</button>
+        <span id="track-info">Nothing playing</span>
+        <button id="sync-toggle">Spotify: OFF</button>
+      </div>
+    </footer>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

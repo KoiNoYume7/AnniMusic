@@ -1,127 +1,177 @@
-# 🎵 AnniMusic
->Work in progress... hopefully not for long anymore ^^
+# 🎵 AnniMusic 🎵
+> Work in progress... but already kinda awesome tbh ^^
 
 <img src="web/assets/^AnniMusic.png" alt="AnniMusic Logo" width="1000" style="border: 2px solid #444; border-radius: 10px; padding: 4px;">
 
 ### Welcome to **AnniMusic** – a self-hosted, Spotify-synced music vault built for music lovers who are tired of licensing wipes and vanishing favorites.  
 AnniMusic lets you sync, download, and keep your collection forever — right on your own device.
 
-## 💡 What It Does (And Already Does)
+## 💡 What It Does (Now)
 
-- 🔁 **Real-Time Sync**: Syncs liked songs and playlists via the Spotify API.
-- 🖼️ **Playlist Grid UI**: Clean grid layout with playlist covers.
-- 🔙 **Back Button Support**: Browser navigation works like a real app (playlist ↔ main).
-- 🎶 **Local Downloads**: Downloads songs with `spotDL`, stored locally on your system.
-- 🧠 **Smart Status Polling**: 1-second polling keeps status updates accurate in real time.
-- ✅ **Live Download Status**: See songs flip from `"queued"` → `"downloading"` → `"downloaded"` (or `"failed"`).
-- 🔊 **Stream-Only Fallback**: Songs you can’t download are still playable if they have a Spotify link.
-- 📦 **Metadata-Rich UI**: Displays title, artist, album, added date, duration, and cover art.
-- 🕹️ **Custom Web Player**: Play songs directly from your own UI.
-- 🛠️ **spotDL Integration**: Seamless queue-based downloads behind the scenes.
-- 🔒 **Private & Secure**: Nothing gets shared, tracked, or uploaded. You own it all.
+- 🔁 **Spotify Sync**: Liked songs & playlists via Spotify API on app startup.
+- 🖼️ **Playlist Grid UI**: Beautiful grid with cover art and track counts.
+- 🔙 **Back Button Navigation**: Full browser history support.
+- 🎶 **spotDL Integration**: Automatic `spotDL` downloads with real-time feedback.
+- 🧠 **Status Polling**: Background validation every 2 seconds.
+- ✅ **Live Status Tags**: `"queued"` → `"downloading"` → `"validating"` → `"downloaded"` (or `"failed"`).
+- 🔊 **Stream-Only Fallback**: Songs with a Spotify URL but no local download can still play.
+- 📦 **Metadata Support**: Shows title, artist, album, date added, and duration.
+- 🛠️ **Metadata Editor**: Per-track editable tags + rating via JSON backend.
+- 🕹️ **Custom Audio Player**: Includes hover play buttons and a main control.
+- 📶 **Server Status Watchdog**: Alerts user when backend is offline.
+- ⚙️ **Spotify Sync Toggle**: Turn syncing on/off directly in UI.
+- 🔒 **Encrypted .env**: Protect your Spotify API keys using `ncrypt`.
 
 
-## 🚀 Who It's For
 
-- People who want to **preserve** songs removed from Spotify.
-- Devs who want a **custom, self-hosted** music interface.
-- Users who are tired of DRM-based rental models and want **local playback**.
-- Everyone who has ever shouted “WHERE DID MY SONG GO?” and meant it.
+## 🧠 Who It’s For
 
-## ⚠️ Legal Disclaimer
+- Anyone tired of losing access to songs they loved.
+- Devs who want a *Spotify-to-local* self-hosted vault.
+- Music hoarders and local library lovers.
+- People who say: “If Spotify deletes it, I still got it.”
 
-AnniMusic is for **personal use only**.  
-You are responsible for following Spotify’s terms of service and local copyright laws.  
-This tool does **not** bypass DRM and does **not** share any files between users.
+## ⚠️ Legal Notice
+
+**AnniMusic is for PERSONAL use only.**  
+No file sharing. No DRM bypassing.  
+You are fully responsible for following Spotify’s terms and your local copyright laws.
+
 
 ## 🧰 Tech Stack
 
-| Layer    | Tools                               |
-|----------|-------------------------------------|
-| Backend  | Python, FastAPI, subprocess, spotDL |
-| Frontend | Vanilla JS, HTML, CSS               |
-| Sync     | Spotify Web API, spotDL, threading  |
-| Storage  | JSON-based metadata, local file system |
-| Deployment | Localhost / self-hosted (PC, Pi, VPS) |
+| Layer     | Tools                                       |
+|-----------|---------------------------------------------|
+| Backend   | Python, FastAPI, `spotDL`, threading        |
+| Frontend  | HTML, CSS, Vanilla JS                       |
+| Sync/API  | Spotify Web API, dotenv, Spotipy            |
+| Storage   | JSON metadata, `.mp3` file downloads        |
+| Dev Tools | Live reload, local-only development         |
+
 
 
 ## 📁 Project Structure
 
 
 ```
-AnniMusic
-|   .cache-annimusic
-|   .env
-|   .env.ncrypt
-|   .gitignore
-|   LICENSE
-|   ProjectStruct.txt
-|   README.md
-|   requirements.txt
-|   setup.bat
-|
-+---data
-|   +---downloads
-|   |       <--- your downloaded spotify songs go here in .mp3 format <---
-|   |
-|   \---metadata
-|           liked_tracks.json
-|           playlists.json
-|           status.json
-|
-+---server
-|       downloader.py
-|       main.py
-|       playback_tracker.py
-|       spotify_sync.py
-|       utils.py
-|
-\---web
-    |   index.html
-    |   player.js
-    |   script.js
-    |   spotify.js
-    |   state.js
-    |   style.css
-    |   ui.js
-    |   utils.js
-    |
-    \---assets
-            AnniMusic-LikedSongs.png
-            ^AnniMusic.png
+AnniMusic/
+│   .cache-annimusic
+│   .env / .env.ncrypt
+│   .gitignore
+│   LICENSE
+│   ProjectStruct.md
+│   README.md
+│   setup.bat / decrypt_env.bat
+│
+├── server/
+│   ├── main.py                  # FastAPI entry + sync on startup
+│   ├── core/
+│   │   └── shared.py            # Shared resources (e.g., queues)
+│   ├── data/
+│   │   ├── downloads/           # .mp3 files + .finished markers
+│   │   └── metadata/            # liked_tracks.json, playlists.json, status.json
+│   ├── logic/
+│   │   ├── spotify_sync.py      # Spotify sync logic
+│   │   ├── spotify_tools.py     # Auth & client
+│   │   ├── status_handler.py    # Track status logic
+│   │   └── file_utils.py        # Placeholder for future expansion
+│   ├── routes/
+│   │   ├── playlists.py         # Playlist routes
+│   │   ├── songs.py             # Songs, metadata edit, download logic
+│   │   ├── spotify.py           # Token endpoint
+│   │   └── status_routes.py     # Status polling + validation
+│   └── worker/
+│       └── downloader_thread.py # Threaded spotDL downloader
+│
+└── web/
+    ├── index.html
+    ├── style.css
+    ├── main.js
+    ├── assets/
+    │   └── [images and logos]
+    ├── api/
+    │   ├── getPlaylist.js
+    │   ├── fetchStatus.js
+    │   └── downloadSongs.js
+    ├── state/
+    │   ├── store.js             # Spotify sync toggle state
+    │   └── connection.js        # Online status watchdog
+    ├── ui/
+    │   ├── playerUI.js
+    │   ├── rendererPlaylistGrid.js
+    │   └── rendererSongRow.js
+    └── utils/
+        └── formatter.js         # Date/duration formatting
 ```
-
 
 ## ✅ Features Done
 
-- [ x ] Spotify Sync Script (likes, playlists)
-- [ x ] spotDL Integration
-- [ x ] Real-Time Polling + UI Status Updates
-- [ x ] Web Player UI
-- [ x ] Playlist Grid + Cover Display
-- [ x ] Browser Navigation (History API)
-- [ x ] `stream-only` fallback
-- [ x ] Status Validator & Self-Healing JSON
-- [ x ] Download Queue & Threaded SpotDL
+- Spotify Liked Songs + Playlist Sync
+- spotDL Integration
+- JSON Metadata System
+- Playlist Grid with Covers
+- Liked Song List Renderer
+- Live Status Polling + Visuals
+- Multi-State Download Queue
+- Stream Fallback System
+- Web Audio Player
+- Download-All Button
+- Metadata Editor (rating, tags)
+- Offline Server Warning
+- `.env` Encryption via `ncrypt`
 
 ## 🔧 Features Coming Soon
 
-- [ ] Local Download to Mobile Support
-- [ ] Playback Tracker & Seek Bar
-- [ ] Metadata Tag Editor & Ratings
-- [ ] Custom Spotify Wrapped Generator
-- [ ] Server Config/Settings Panel
-- [ ] Optional Auth
-- [ ] Full UI Customization
+- Mobile-friendly local download options
+- Seekbar + Playback Timeline
+- Track Ratings / Personal Tag Filters
+- Custom Spotify Wrapped Generator
+- Server Config Dashboard
+- Auth / Password Protection
+- Full Theming / UI Skins
+- Real-Time Sync (without refresh)
+- Jam?
 
 ## 👾 How to Use
 
-1. Clone this repo
-2. Set up your Spotify API keys in `.env`
-3. Run the backend with: ```uvicorn server.main:app --reload ```
-4. Visit ```http://127.0.0.1:8000```
-5. Start syncing, downloading, and jamming
-6. Modify to your heart's content — it's your music, your rules.
+```bash
+git clone https://github.com/your-username/AnniMusic
+cd AnniMusic
+```
+
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com).
+2. Log in and create an app.
+3. Name it (e.g. "AnniMusic"), optionally add description.
+4. Add `http://127.0.0.1:8888/callback` to Redirect URIs.
+5. Select "Web API" and "Web Playback SDK".
+6. Accept terms and save.
+7. In your AnniMusic folder, create a file named `.env`.
+8. Add the following to it:
+
+```env
+SPOTIPY_CLIENT_ID=your_client_id_here
+SPOTIPY_CLIENT_SECRET=your_client_secret_here
+SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callback
+```
+
+9. dont forget to save, it belongs to the project root folder (AnniMusic)
+10. Create a virtual environment and install dependencies:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+```
+
+11. Run the backend:
+
+```bash
+uvicorn server.main:app --reload
+```
+
+12. Visit `http://127.0.0.1:8000` in your browser.
+13. Start syncing, downloading, and jamming I guess
+
 
 
 ### 🔥 Credits

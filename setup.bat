@@ -20,7 +20,7 @@ pip install -r requirements.txt
 spotdl -download--ffmpeg
 
 echo Setup complete!
-PPAUSE
+PAUSE
 echo starting the server...
 uvicorn server.main:app --reload
 
